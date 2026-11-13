@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080808" />
+  <title>RODAPAY</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="RodaPay" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="img/rodapay-icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="img/rodapay-icon-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="premium.css" />
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <div id="confirmModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card compact confirm-card">
+      <button class="icon-btn modal-close" data-close-confirm aria-label="Fechar">×</button>
+      <div class="confirm-badge">!</div>
+      <h3 id="confirmTitle">Excluir este item?</h3>
+      <p id="confirmText">Essa ação não poderá ser desfeita.</p>
+      <div class="confirm-actions">
+        <button type="button" class="btn ghost" data-close-confirm id="confirmCancel">Cancelar</button>
+        <button type="button" id="confirmAction" class="btn danger">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="legalAcceptance" class="legal-acceptance hidden" role="dialog" aria-modal="true" aria-labelledby="legalTitle">
+    <div class="legal-acceptance-card">
+      <span class="legal-eyebrow">BEM-VINDO AO RODAPAY</span>
+      <h2 id="legalTitle">Antes de começar</h2>
+      <p>Para continuar, leia os documentos que explicam como o RodaPay funciona e como cuidamos das suas informações.</p>
+      <div class="legal-doc-links">
+        <a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de Uso <span aria-hidden="true">↗</span></a>
+        <a href="privacidade.html" target="_blank" rel="noopener noreferrer">Política de Privacidade <span aria-hidden="true">↗</span></a>
+      </div>
+      <label class="legal-check"><input id="legalAcknowledgement" type="checkbox"><span>Li e aceito os Termos de Uso e estou ciente da Política de Privacidade.</span></label>
+      <p id="legalFeedback" role="status" aria-live="polite"></p>
+      <button type="button" id="acceptLegal" class="btn primary" disabled>Concordar e continuar</button>
+      <button type="button" id="declineLegal" class="legal-exit">Sair por enquanto</button>
+    </div>
+  </section>
+
+  <section id="loginView" class="login-view">
+    <div class="login-card">
+      <div class="brand-block">
+        <div class="brand-logo" aria-hidden="true"><svg class="rodapay-mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 32c2-12 11-19 23-19h6" stroke="currentColor" stroke-width="5.2" stroke-linecap="round"/><path d="m29 7 9 6-9 6" stroke="currentColor" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 37h28" stroke="currentColor" stroke-width="5.2" stroke-linecap="round"/><circle cx="19" cy="37" r="3.1" fill="var(--brand)"/></svg></div>
+        <h1>RodaPay</h1>
+        <p>Seus ganhos, suas metas, seu caminho. Tudo sob controle.</p>
+      </div>
+      <form id="loginForm" class="form-stack">
+        <label>E-mail<input id="loginEmail" type="email" autocomplete="email" required placeholder="seuemail@exemplo.com" /></label>
+        <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Sua senha" /></label>
+        <button class="btn primary" type="submit">Entrar</button>
+        <button class="login-reset-link" type="button" id="passwordResetBtn">Esqueci minha senha</button><p class="login-help">Entre com o e-mail e a senha do seu acesso.</p>
+      </form>
+      <p class="legal-login-links"><a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de Uso</a><span aria-hidden="true">·</span><a href="privacidade.html" target="_blank" rel="noopener noreferrer">Privacidade</a></p>
+      <form id="resetPasswordForm" class="form-stack hidden">
+        <p class="password-reset-description">Informe o e-mail cadastrado. Enviaremos um link para você criar outra senha.</p>
+        <label>E-mail<input id="resetPasswordEmail" type="email" autocomplete="email" required placeholder="seuemail@exemplo.com"></label>
+        <button class="btn primary" type="submit">Enviar link de recuperação</button>
+        <button class="login-reset-link" id="resetPasswordBack" type="button">Voltar ao login</button>
+      </form>
+    </div>
+  </section>
+
+  <div id="appStarting" class="app-starting hidden" aria-live="polite" role="status">
+    <div class="app-starting-card"><strong>Preparando seu RodaPay...</strong><p>Validando o acesso e carregando suas informações.</p></div>
+  </div>
+
+  <main id="appShell" class="app-shell hidden">
+    <header class="app-header">
+      <div class="brand-line"><div class="mini-logo" aria-hidden="true"><svg class="rodapay-mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 32c2-12 11-19 23-19h6" stroke="currentColor" stroke-width="5.2" stroke-linecap="round"/><path d="m29 7 9 6-9 6" stroke="currentColor" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 37h28" stroke="currentColor" stroke-width="5.2" stroke-linecap="round"/><circle cx="19" cy="37" r="3.1" fill="var(--brand)"/></svg></div><div class="brand-word"><strong>RodaPay</strong><small>Seu dinheiro em movimento</small></div></div>
+      <div class="header-account-actions"><button id="headerProfile" class="header-avatar-btn" type="button" aria-label="Abrir perfil"><span id="headerAvatar" class="header-avatar-content">👤</span></button><button id="headerLogout" class="small-link">Sair</button></div>
+    </header>
+
+    <section id="dashboardView" class="screen active-screen">
+      <nav class="period-tabs" aria-label="Período do painel">
+        <button class="period-tab active" data-period="daily">Diário</button>
+        <button class="period-tab" data-period="weekly">Semanal</button>
+        <button class="period-tab" data-period="monthly">Mensal</button>
+        <button class="period-tab" data-period="yearly">Anual</button>
+      </nav>
+      <div id="dashboardContent"></div>
+    </section>
+
+    <section id="transactionsView" class="screen">
+      <div class="screen-title-row">
+        <div><span class="screen-eyebrow">FINANÇAS</span><h2>Movimentações</h2></div>
+      </div>
+      <nav class="sub-tabs">
+        <button class="sub-tab active" data-transaction-tab="entries">Entradas</button>
+        <button class="sub-tab" data-transaction-tab="expenses">Saídas</button>
+      </nav>
+      <div class="transactions-quickbar"><button class="btn primary" type="button" data-new-ride>+ Nova corrida</button><button class="btn secondary" id="addTransactionExpense" type="button">+ Despesa</button></div>
+      <div id="transactionsList" class="list-stack"></div>
+    </section>
+
+    <section id="settingsView" class="screen">
+      <div class="section-page-heading"><span class="screen-eyebrow">PREFERÊNCIAS</span><h2>Configurações</h2><p>Personalize o aplicativo e gerencie sua conta.</p></div>
+      <div id="settingsMenu" class="settings-menu"></div>
+      <div id="settingsPanel" class="settings-panel hidden"></div>
+    </section>
+
+    <section id="drivingView" class="screen driving-screen">
+      <header class="drive-page-heading">
+        <button type="button" class="drive-back" data-back-dashboard aria-label="Voltar ao painel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          Voltar
+        </button>
+        <span class="screen-eyebrow">CONTROLE DE JORNADA</span>
+        <h1>Suas horas, sob controle.</h1>
+        <p>Registre o tempo trabalhado de forma simples.</p>
+      </header>
+
+      <div id="driveFeedback" class="drive-feedback hidden" aria-live="polite"></div>
+
+      <section class="drive-console" aria-label="Cronômetro de jornada">
+        <div class="drive-console-top">
+          <span class="drive-console-label">CRONÔMETRO</span>
+          <span id="driveStatus" class="drive-state-label">Pronto para iniciar</span>
+        </div>
+        <button id="driveStartPause" type="button" class="drive-circle">INICIAR</button>
+        <div id="driveTimer" class="drive-timer" role="timer" aria-live="off">00:00:00</div>
+        <p id="driveHint" class="drive-hint">Toque em Iniciar para começar sua jornada.</p>
+        <button id="driveFinish" type="button" class="drive-finish-btn hidden">Encerrar e salvar jornada</button>
+        <p id="driveFinishNotice" class="drive-finish-notice hidden">Ao encerrar, o registro é definitivo. Para continuar depois, use Pausar.</p>
+      </section>
+
+      <div class="drive-shortcuts" aria-label="Outras opções de jornada">
+        <button type="button" class="drive-shortcut" data-manual-hours>
+          <span class="drive-shortcut-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v8m-4-4h8"/><circle cx="12" cy="12" r="9"/></svg></span>
+          <span class="drive-shortcut-label">Registrar horas</span>
+        </button>
+        <button type="button" class="drive-shortcut" data-drive-open-history>
+          <span class="drive-shortcut-symbol"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v4m8-4v4M4 10h16m-12 4h7m-7 3h4"/></svg></span>
+          <span class="drive-shortcut-label">Ver histórico</span>
+        </button>
+      </div>
+    </section>
+
+    <button id="activeDriveIndicator" type="button" class="driving-floating-status hidden" data-open-driving aria-live="off"><span class="driving-live-dot"></span><span class="driving-live-copy"><strong data-drive-state>Jornada em andamento</strong><small data-drive-clock>00:00:00</small></span><span class="driving-live-arrow" aria-hidden="true">›</span></button>
+    <button id="floatingAdd" class="fab add-fab legacy-fab" aria-label="Adicionar"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    <button id="floatingDrive" class="fab drive-fab legacy-fab" aria-label="Driving"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6.3 9.5A2 2 0 0 1 8.2 8h7.6a2 2 0 0 1 1.9 1.5l1 3.5c.1.2.1.4.1.6V17a1 1 0 0 1-1 1h-.8a2 2 0 0 1-4 0H11a2 2 0 0 1-4 0h-.8a1 1 0 0 1-1-1v-3.4c0-.2 0-.4.1-.6l1-3.5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.2 13.2h9.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M7.6 16.2h.01M16.4 16.2h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+
+    <nav class="bottom-nav" aria-label="Navegação principal">
+      <button class="nav-item active" data-view="dashboardView" type="button"> <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg></span><span>Painel</span></button>
+      <button class="nav-item" data-view="transactionsView" type="button"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h13M16 3l4 4-4 4M17 17H4M8 13l-4 4 4 4"/></svg></span><span>Histórico</span></button>
+      <button class="nav-item nav-primary-action" type="button" data-new-ride aria-label="Cadastrar nova corrida"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span>Corrida</span></button>
+      <button class="nav-item" type="button" data-open-driving><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M3 12h6m6 0h6m-9 3v6"/></svg></span><span>Jornada</span></button>
+      <button class="nav-item" data-view="settingsView" type="button"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.86l-1.9 1.9A1.7 1.7 0 0 0 16 18.4a1.7 1.7 0 0 0-1.37.94L14 21h-4l-.63-1.66A1.7 1.7 0 0 0 8 18.4a1.7 1.7 0 0 0-1.86.34l-1.9-1.9A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.94-1.37L2 13v-2l1.66-.63A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.86l1.9-1.9A1.7 1.7 0 0 0 8 5.6a1.7 1.7 0 0 0 1.37-.94L10 3h4l.63 1.66A1.7 1.7 0 0 0 16 5.6a1.7 1.7 0 0 0 1.86-.34l1.9 1.9A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .94 1.37L22 11v2l-1.66.63A1.7 1.7 0 0 0 19.4 15Z"/></svg></span><span>Ajustes</span></button>
+    </nav>
+  </main>
+
+  <div id="formModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card large">
+      <div class="modal-topbar" aria-hidden="true"><span class="visually-hidden">Fechar</span><button type="button" class="icon-btn modal-close" data-close-form aria-label="Fechar">×</button></div>
+      <div id="formModalContent"></div>
+    </div>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

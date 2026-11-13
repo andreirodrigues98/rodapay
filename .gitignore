@@ -1,0 +1,31 @@
+# Dados privados e credenciais
+.env
+.env.*
+!.env.example
+serviceAccountKey.json
+service-account.json
+firebase-adminsdk*.json
+*.pem
+*.key
+
+# Ferramentas e dados de desenvolvimento
+node_modules/
+.firebase-local-data/
+.firebase/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Administração: nunca versionar credenciais ou exportações sensíveis
+*service-account*.json
+*credentials*.json
+admin/*.backup
+admin/*.enc
+*.rodapay-backup
+backups/
+dist-public/
+
+
+firebase-export-*/

@@ -1,0 +1,148 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // O bloqueio é definido no Console/Admin SDK, nunca pelo usuário.
+    function accountEnabled(userId) {
+      return isOwner(userId)
+        && exists(/databases/$(database)/documents/users/$(userId))
+        && get(/databases/$(database)/documents/users/$(userId)).data.get('active', true) != false
+        && get(/databases/$(database)/documents/users/$(userId)).data.get('legalVersion', '') == '2026-11-13';
+    }
+
+    function validSettings(settings) {
+      return settings is map && settings.keys().size() <= 15
+        && (!("lightMode" in settings) || settings.lightMode is bool)
+        && (!("themePreference" in settings) || settings.themePreference in ["dark", "light"])
+        && (!("incomeTaxRate" in settings) || (settings.incomeTaxRate is number && settings.incomeTaxRate >= 0 && settings.incomeTaxRate <= 100));
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow delete: if false;
+      // Somente a VORA provisiona a conta; o SDK Admin ignora regras do cliente.
+      allow create: if false;
+      // O titular pode personalizar e registrar aceite, nunca alterar privilégios.
+      allow update: if isOwner(userId) && resource.data.get('active', true) != false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'settings', 'updatedAt', 'seededDefaults', 'legalVersion', 'legalAcceptedAt'
+        ])
+        && validSettings(request.resource.data.settings)
+        && (!('seededDefaults' in request.resource.data) || request.resource.data.seededDefaults is bool)
+        && (!('legalVersion' in request.resource.data) || request.resource.data.legalVersion == '2026-11-13')
+        && (!('legalAcceptedAt' in request.resource.data) || request.resource.data.legalAcceptedAt is timestamp)
+        && (!(request.resource.data.diff(resource.data).affectedKeys().hasAny(['legalVersion','legalAcceptedAt']))
+           || (request.resource.data.legalVersion == '2026-11-13' && request.resource.data.legalAcceptedAt == request.time));
+
+      match /profile/{profileId} {
+        allow get: if accountEnabled(userId) && profileId == 'main';
+        allow list: if false;
+        allow delete: if false;
+        allow create, update: if accountEnabled(userId) && profileId == 'main'
+          && request.resource.data.keys().hasOnly(['displayName', 'avatar', 'updatedAt'])
+          && request.resource.data.keys().hasAll(['displayName', 'avatar', 'updatedAt'])
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 60
+          && request.resource.data.avatar is string
+          && request.resource.data.avatar.size() <= 90000
+          && (request.resource.data.avatar == '' || request.resource.data.avatar.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$'))
+          && request.resource.data.updatedAt is timestamp;
+      }
+
+      function hasText(data, field, maxLength) {
+        return !(field in data) || (data[field] is string && data[field].size() <= maxLength);
+      }
+
+      function hasNonnegativeNumber(data, field) {
+        return !(field in data) || (data[field] is number && data[field] >= 0 && data[field] <= 1000000000);
+      }
+
+      function hasOnlyKnownFields(name, data) {
+        return (name == 'entries' && data.keys().hasOnly([
+          'date', 'weekday', 'origin', 'value', 'trips', 'km', 'minutes', 'note', 'createdAt', 'updatedAt',
+          'entryType', 'fare', 'tip', 'rideTime'
+        ])) || (name == 'expenses' && data.keys().hasOnly([
+          'date', 'weekday', 'description', 'value', 'category', 'expenseType', 'detail',
+          'paymentMethod', 'maintenanceItem', 'receipt', 'createdAt', 'updatedAt'
+        ])) || (name == 'origins' && data.keys().hasOnly([
+          'name', 'description', 'image', 'color', 'selected', 'createdAt', 'updatedAt'
+        ])) || (name == 'paymentMethods' && data.keys().hasOnly([
+          'name', 'description', 'createdAt', 'updatedAt'
+        ])) || (name == 'expenseCategories' && data.keys().hasOnly([
+          'name', 'description', 'type', 'createdAt', 'updatedAt'
+        ])) || (name == 'goals' && data.keys().hasOnly([
+          'year', 'month', 'workDays', 'revenueGoal', 'profitGoal', 'expenseGoal', 'createdAt', 'updatedAt'
+        ])) || (name == 'drivingSessions' && data.keys().hasOnly([
+          'userId', 'startDate', 'endDate', 'startTime', 'endTime', 'totalSeconds', 'source', 'groupId', 'createdAt', 'updatedAt'
+        ]));
+      }
+
+      function validRecord(name, data, userId) {
+        return hasOnlyKnownFields(name, data)
+          && data.keys().size() <= 14
+          && hasText(data, 'name', 120)
+          && hasText(data, 'description', 500)
+          && hasText(data, 'origin', 120)
+          && hasText(data, 'date', 20)
+          && hasText(data, 'weekday', 30)
+          && hasText(data, 'rideTime', 5)
+          && hasText(data, 'source', 12)
+          && (!('source' in data) || data.source in ['timer','manual'])
+          && hasText(data, 'groupId', 40)
+          && (!("entryType" in data) || (data.entryType == 'ride' && data.get('trips', 0) == 1 && data.get('minutes', 0) == 0
+            && data.get('rideTime', '').matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+            && data.get('fare', 0) > 0 && data.get('tip', 0) >= 0))
+          && hasText(data, 'category', 120)
+          && hasText(data, 'expenseType', 50)
+          && hasText(data, 'paymentMethod', 120)
+          && hasText(data, 'note', 5000)
+          && hasText(data, 'detail', 5000)
+          && hasText(data, 'maintenanceItem', 500)
+          && hasText(data, 'type', 50)
+          && hasText(data, 'color', 20)
+          && hasText(data, 'image', 800000)
+          && hasText(data, 'receipt', 800000)
+          && hasNonnegativeNumber(data, 'value')
+          && hasNonnegativeNumber(data, 'fare')
+          && hasNonnegativeNumber(data, 'tip')
+          && hasNonnegativeNumber(data, 'trips')
+          && hasNonnegativeNumber(data, 'km')
+          && hasNonnegativeNumber(data, 'minutes')
+          && hasNonnegativeNumber(data, 'year')
+          && hasNonnegativeNumber(data, 'month')
+          && hasNonnegativeNumber(data, 'workDays')
+          && hasNonnegativeNumber(data, 'revenueGoal')
+          && hasNonnegativeNumber(data, 'profitGoal')
+          && hasNonnegativeNumber(data, 'expenseGoal')
+          && hasNonnegativeNumber(data, 'totalSeconds')
+          && (!("selected" in data) || data.selected is bool)
+          && (!("startDate" in data) || hasText(data, 'startDate', 20))
+          && (!("endDate" in data) || hasText(data, 'endDate', 20))
+          && (!("startTime" in data) || hasText(data, 'startTime', 20))
+          && (!("endTime" in data) || hasText(data, 'endTime', 20))
+          && (!("userId" in data) || (data.userId is string && data.userId == userId))
+          && (!("createdAt" in data) || data.createdAt is timestamp)
+          && (name != 'drivingSessions' || (
+            data.get('totalSeconds', 0) is number && data.get('totalSeconds', 0) > 0 && data.get('totalSeconds', 0) <= 86400
+            && data.get('startDate', '').matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+            && data.get('endDate', '').matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          ))
+          && (!("updatedAt" in data) || data.updatedAt is timestamp);
+      }
+
+      match /{collectionName}/{recordId} {
+        allow read: if accountEnabled(userId) && collectionName in [
+          'entries', 'expenses', 'origins', 'paymentMethods', 'expenseCategories', 'goals', 'drivingSessions'
+        ];
+        allow create, update: if accountEnabled(userId) && validRecord(collectionName, request.resource.data, userId);
+        allow delete: if accountEnabled(userId) && collectionName in [
+          'entries', 'expenses', 'origins', 'paymentMethods', 'expenseCategories', 'goals', 'drivingSessions'
+        ];
+      }
+    }
+  }
+}

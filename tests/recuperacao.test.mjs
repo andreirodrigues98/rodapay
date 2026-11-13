@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {randomBytes,scryptSync,createCipheriv} from 'node:crypto';
+import {decryptBackup, validatePayload, summary, safeEmulatorEnv, equivalent, reviveFirestoreValue} from '../admin/restore-emulator.mjs';
+
+const payload={project:'rodapay-c5490',generatedAt:'2026-11-13T20:53:08Z',users:[
+  {id:'UidUsuario1',auth:{email:'example@invalid.test',disabled:false,emailVerified:true},root:{createdAt:{_seconds:1790000000,_nanoseconds:12345},settings:{lightMode:false}},collections:{entries:[{id:'e1',data:{date:'2026-11-13',value:23.5,createdAt:{_seconds:1790000000,_nanoseconds:0}}}]}}
+],audit:[{id:'a1',data:{action:'create',at:{_seconds:1790000000,_nanoseconds:0}}}]};
+const pass='Senha-local-forte-para-recuperar-um-backup';
+function encrypt(data,password=pass){const salt=randomBytes(16),iv=randomBytes(12); const key=scryptSync(password,salt,32,{N:1<<15,r:8,p:1,maxmem:64*1024*1024});const cipher=createCipheriv('aes-256-gcm',key,iv);const ciphertext=Buffer.concat([cipher.update(JSON.stringify(data),'utf8'),cipher.final()]);return {format:'rodapay-encrypted-backup-v1',salt:salt.toString('base64'),iv:iv.toString('base64'),tag:cipher.getAuthTag().toString('base64'),ciphertext:ciphertext.toString('base64')}}
+
+test('descriptografia e resumo do backup V9',()=>{const decoded=decryptBackup(encrypt(payload),pass);assert.deepEqual(summary(decoded),{project:'rodapay-c5490',backupDate:payload.generatedAt,users:1,firestoreDocuments:2,auditEvents:1,collections:{entries:1}})});
+test('senha errada ou alteração no texto criptografado impede recuperação',()=>{const envelope=encrypt(payload);assert.throws(()=>decryptBackup(envelope,'senha errada com vinte caracteres'));const corrupt={...envelope,ciphertext:Buffer.from('dados invalidos').toString('base64')};assert.throws(()=>decryptBackup(corrupt,pass))});
+test('emuladores somente nas portas e host locais esperados',()=>{assert.ok(safeEmulatorEnv({FIREBASE_AUTH_EMULATOR_HOST:'127.0.0.1:9099',FIRESTORE_EMULATOR_HOST:'127.0.0.1:8080'}));assert.equal(safeEmulatorEnv({FIREBASE_AUTH_EMULATOR_HOST:'127.0.0.1:9099',FIRESTORE_EMULATOR_HOST:'firestore.googleapis.com:443'}),false);assert.equal(safeEmulatorEnv({FIREBASE_AUTH_EMULATOR_HOST:'127.0.0.1:9099',FIRESTORE_EMULATOR_HOST:'127.0.0.1:8080',GOOGLE_CLOUD_PROJECT:'rodapay-c5490'}),false);});
+test('documentos duplicados, UIDs inválidos ou origem errada são rejeitados',()=>{assert.throws(()=>validatePayload({...payload,project:'outro-projeto'}));assert.throws(()=>validatePayload({...payload,users:[payload.users[0],payload.users[0]]}));assert.throws(()=>validatePayload({...payload,users:[{...payload.users[0],id:'u/a'}]}));});
+test('Timestamp serializado é reconstruído e comparável',()=>{class Timestamp{constructor(seconds,nanoseconds){this.seconds=seconds;this.nanoseconds=nanoseconds}static fromDate(date){return new Timestamp(Math.floor(date.getTime()/1000),0)}toDate(){return new Date(this.seconds*1000)}} const value=reviveFirestoreValue(payload.users[0].root,Timestamp);assert.ok(value.createdAt instanceof Timestamp);assert.ok(equivalent(payload.users[0].root,value));assert.equal(value.createdAt.seconds,1790000000);});
