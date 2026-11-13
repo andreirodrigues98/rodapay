@@ -1,25 +1,11 @@
 {
-  "name": "rodapay-premium",
+  "name": "rodapay-app-public",
   "private": true,
   "version": "9.3.0",
-  "type": "module",
-  "description": "Ferramentas locais de desenvolvimento e testes do RodaPay. Não contém credenciais administrativas.",
   "scripts": {
-    "emulators": "firebase emulators:start --only auth,firestore --project demo-rodapay",
-    "test": "node --test tests/*.mjs",
-    "check": "node --check app.js && node --check auth.js && node --check data.js && node --check driving.js && node --check dashboard.js && node --check transactions.js && node --check settings.js && node --check profile.js && node --check utils.js && node --check firebase.js && node --check goals.js",
-    "admin": "node admin/server.mjs",
-    "build:public": "node scripts/build-public.mjs",
-    "backup:production": "node admin/backup.mjs create",
-    "backup:verify": "node admin/backup.mjs verify",
-    "restore:inspect": "node admin/restore-emulator.mjs inspect",
-    "restore:emulator": "node admin/restore-emulator.mjs restore",
-    "restore:check": "node admin/restore-emulator.mjs check",
-    "emulators:recovery": "firebase emulators:start --only auth,firestore --project demo-rodapay-recovery",
-    "test:rules": "node scripts/verify-isolation.mjs"
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
-    "firebase-tools": "15.36.0",
-    "firebase-admin": "^13.0.0"
+    "wrangler": "^4.102.0"
   }
 }
