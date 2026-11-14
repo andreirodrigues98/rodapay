@@ -32,3 +32,6 @@ firebase-export-*/
 .dev.vars
 .dev.vars.*
 *.local
+
+
+firestore.rules
