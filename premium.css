@@ -1506,3 +1506,151 @@ body:not(.light-mode) .origin-track-fill[style*="E1E5EC"]{opacity:.32!important;
 html body.modal-open{overflow:hidden!important;position:static!important;overscroll-behavior:none!important}
 html body:not(.modal-open){overflow-x:hidden!important;overflow-y:auto!important;position:static!important}
 html #formModal:not(.hidden),html #confirmModal:not(.hidden){overscroll-behavior:contain!important}
+\n\n/* V9.4.2 — iPhone: formulários, modais e indicadores sem cortes. */
+@media (max-width: 699px) {
+  /* O cabeçalho não rola com os formulários: evita perder o começo e o fechar. */
+  html body #formModal:not(.hidden) {
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    height:100dvh!important;
+    min-height:0!important;
+    padding:max(10px, env(safe-area-inset-top, 0px))
+            max(10px, env(safe-area-inset-right, 0px))
+            max(12px, env(safe-area-inset-bottom, 0px))
+            max(10px, env(safe-area-inset-left, 0px))!important;
+    overflow:hidden!important;
+  }
+  html body #formModal .modal-card.large {
+    display:flex!important;
+    flex-direction:column!important;
+    width:100%!important;
+    max-width:520px!important;
+    height:100%!important;
+    max-height:100%!important;
+    min-height:0!important;
+    margin:0 auto!important;
+    padding:0!important;
+    border-radius:24px!important;
+    overflow:hidden!important;
+  }
+  html body #formModal .modal-topbar {
+    position:relative!important;
+    top:auto!important;
+    z-index:12!important;
+    flex:0 0 auto!important;
+    min-height:62px!important;
+    padding:10px 16px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    background:var(--surface-2, #181818)!important;
+    border-bottom:1px solid var(--border)!important;
+    backdrop-filter:none!important;
+  }
+  html body #formModal .modal-topbar .modal-close {
+    position:static!important;
+    margin:0!important;
+    float:none!important;
+    flex:0 0 44px!important;
+    width:44px!important;
+    height:44px!important;
+    touch-action:manipulation!important;
+  }
+  html body #formModal #formModalContent {
+    flex:1 1 auto!important;
+    min-height:0!important;
+    max-width:100%!important;
+    width:100%!important;
+    padding:16px 20px calc(30px + env(safe-area-inset-bottom, 0px))!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+  }
+  html body #formModal .ride-quick-form,
+  html body #formModal .ride-form-page {min-width:0!important;max-width:100%!important;}
+  /* Safari pode impor larguras mínimas grandes aos controles de data. */
+  html body #formModal .ride-basic-meta {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:15px!important;
+    min-width:0!important;
+    width:100%!important;
+  }
+  html body #formModal .ride-basic-meta label,
+  html body #formModal .ride-basic-meta input[type="date"],
+  html body #formModal .ride-basic-meta input[type="time"] {
+    box-sizing:border-box!important;
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+  }
+  html body #formModal .ride-basic-meta input[type="date"],
+  html body #formModal .ride-basic-meta input[type="time"] {
+    font-size:16px!important;
+    line-height:normal!important;
+    padding-inline:14px!important;
+  }
+  html body #formModal .movement-detail-grid {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:11px!important;
+    width:100%!important;
+  }
+  html body #formModal .movement-detail-field {
+    min-width:0!important;
+    padding:14px 15px!important;
+  }
+  /* Evita a compressão do botão Restaurar e a colisão de textos. */
+  html body .suggested-categories-bar {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:13px!important;
+    padding:16px!important;
+    min-width:0!important;
+  }
+  html body .suggested-categories-bar > div {min-width:0!important;}
+  html body .suggested-categories-bar button[data-restore-expense-categories] {
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:48px!important;
+    display:flex!important;
+    justify-content:center!important;
+    align-items:center!important;
+    white-space:nowrap!important;
+    font-size:14px!important;
+    padding:10px 14px!important;
+  }
+  /* Estado da jornada continua visível, mas não cobre toda a lista em Ajustes. */
+  html body .driving-floating-status:not(.hidden) {
+    width:min(226px, calc(100vw - 28px))!important;
+    min-width:0!important;
+    max-height:65px!important;
+    min-height:53px!important;
+    left:auto!important;
+    right:calc(14px + env(safe-area-inset-right,0px))!important;
+    bottom:calc(var(--rp-nav-bottom, 105px) + 10px)!important;
+    transform:none!important;
+    padding:8px 11px!important;
+    border-radius:16px!important;
+    z-index:79!important;
+  }
+  html body .driving-floating-status .driving-live-copy {min-width:0!important;}
+  html body .driving-floating-status .driving-live-copy strong {
+    font-size:11px!important;
+    line-height:1.15!important;
+  }
+  html body .driving-floating-status .driving-live-copy small {font-size:15px!important;}
+  html body .app-shell.has-running-indicator {
+    padding-bottom:calc(var(--rp-nav-bottom, 105px) + 96px)!important;
+  }
+}
+@media (min-width:400px) and (max-width:699px) {
+  html body #formModal .movement-detail-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}

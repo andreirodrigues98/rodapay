@@ -107,6 +107,12 @@ export function openModal(modal) {
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden', 'false');
   syncModalLock();
+  // Em iOS/Safari, a rolagem da abertura anterior pode ser reaproveitada.
+  // Sempre começar no cabeçalho, sem esconder o começo do formulário.
+  const scrollAreas = [modal, modal.querySelector?.('.modal-card'), modal.querySelector?.('#formModalContent')];
+  for (const area of scrollAreas) {
+    if (area) { area.scrollTop = 0; area.scrollLeft = 0; }
+  }
 }
 export function closeModal(modal) {
   if (!modal) return;

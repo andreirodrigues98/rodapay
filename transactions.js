@@ -180,7 +180,7 @@ export function openRideForm(item = null) {
       <p class="ride-form-intro">Registre o ganho agora e acompanhe sua meta em tempo real.</p>
       <form id="quickRideForm" data-draft-id="${escapeHtml(id)}" class="ride-quick-form">
         <div class="ride-amount-block"><label for="rideAmount">Valor da corrida <small>Sem gorjeta</small></label>
-          <input id="rideAmount" name="fare" data-currency inputmode="numeric" required autofocus placeholder="R$ 0,00" value="${item?formatCurrencyFull(item.fare??(Number(item.value||0)-Number(item.tip||0))):''}" maxlength="22" />
+          <input id="rideAmount" name="fare" data-currency inputmode="numeric" required placeholder="R$ 0,00" value="${item?formatCurrencyFull(item.fare??(Number(item.value||0)-Number(item.tip||0))):''}" maxlength="22" />
         </div>
         <fieldset class="ride-origin-field"><legend>Qual aplicativo?</legend><div class="ride-origin-grid">${choices}</div></fieldset>
         <div class="ride-basic-meta"><label>Data<input type="date" name="date" value="${escapeHtml(date)}" required></label><label>Horário<input type="time" name="rideTime" value="${escapeHtml(rideTime)}" required></label></div>
