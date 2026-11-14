@@ -29,3 +29,6 @@ dist-public/
 
 
 firebase-export-*/
+.dev.vars
+.dev.vars.*
+*.local

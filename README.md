@@ -1,3 +1,19 @@
+# RodaPay V9.4 — código completo + Admin online (preparado, ainda não publicado)
+
+**Novidade:** foi adicionada uma versão independente do painel administrativo em `admin/online/`. O acesso online usa **seu e-mail e senha já existentes no Firebase**; o acesso às operações é liberado **somente ao UID do proprietário** configurado como secret na Cloudflare. O painel local anterior continua como contingência. O aplicativo dos motoristas e o banco de dados **não foram modificados nesta entrega**.
+
+**Publicação do Admin:** leia `admin/online/README-PUBLICACAO.md`. Precisa configurar 2 secrets (`ADMIN_UID` e `FIREBASE_SERVICE_ACCOUNT`) e implantar um segundo Worker com `wrangler.admin.jsonc`. **Nenhuma credencial está embutida no projeto.**
+
+**Publicação do App:** `npm run build:public` e `npx wrangler deploy --config wrangler.jsonc` para o Worker existente `rodapay-app`. **Não substitua o Worker dos motoristas pelo Admin.**
+
+**Testes:** `npm run check` e `npm test`. Estes são testes locais; não substituem homologação no Firebase de produção.
+
+---
+
+## Histórico e documentação V9.3 (antes do Admin online)
+
+Os parágrafos abaixo descrevem a versão anterior, quando **apenas** o Admin local existia. O novo procedimento de acesso online está no guia acima.
+
 # RodaPay — V9.3 | atualização de navegação e publicação
 
 ## O que foi corrigido

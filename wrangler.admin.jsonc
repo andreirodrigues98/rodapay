@@ -1,0 +1,13 @@
+{
+  "name": "rodapay-admin",
+  "compatibility_date": "2026-11-13",
+  "main": "./admin/online/worker.mjs",
+  "assets": {
+    "directory": "./admin/online/public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "rodapay-c5490"
+  }
+}
