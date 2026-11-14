@@ -58,3 +58,10 @@ Para conferir o código sem acessar produção: `npm test` (inclui testes isolad
 - A checagem de permissão é feita novamente em **cada requisição da API**, não somente quando carrega a página.
 - Se o repositório estiver público, o código-fonte do Admin poderá ser lido. **Não há chaves privadas nele**, mas recomenda-se repositório privado.
 - O uso de uma chave JSON de service account exige política de armazenamento, rotação e IAM restrito. Não considerar produção homologada sem teste real.
+
+## Ajuste de login V9.4.1
+
+O painel mostra agora o estado do login e os erros de autorização junto ao formulário.
+Se a senha for aceita mas o Admin negar acesso, confira o UID do usuário em Firebase Authentication e a variável `ADMIN_UID` no Worker, sem divulgar seu conteúdo.
+Se aparecer "Serviço administrativo indisponível" ou "Painel ainda não configurado", revise os logs do Worker e as permissões da conta de serviço; não altere as Rules para tentar resolver um erro de acesso administrativo.
+O Worker `rodapay-app` dos motoristas não foi alterado nesta correção.

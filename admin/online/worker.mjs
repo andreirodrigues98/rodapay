@@ -240,7 +240,7 @@ function responseWithSecurity(response, html = false) {
   headers.set('X-Frame-Options', 'DENY');
   headers.set('Referrer-Policy', 'no-referrer');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  if (html) headers.set('Content-Security-Policy', "default-src 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://*.googleapis.com; img-src 'self' data:; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
+  if (html) headers.set('Content-Security-Policy', "default-src 'none'; script-src 'self' https://www.gstatic.com; frame-src https://rodapay-c5490.firebaseapp.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://*.googleapis.com; img-src 'self' data:; font-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'");
   return new Response(response.body, { status: response.status, headers });
 }
 export default {
@@ -248,7 +248,7 @@ export default {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/')) {
       if (request.method !== 'GET' && request.method !== 'HEAD') return fail(405, 'Método não permitido.');
-      if (!['/', '/index.html', '/painel.js'].includes(url.pathname)) return fail(404, 'Não encontrado.');
+      if (!['/', '/index.html', '/painel.js', '/login-guard.js'].includes(url.pathname)) return fail(404, 'Não encontrado.');
       const urlAsset = new URL(url.pathname === '/' ? '/index.html' : url.pathname, url.origin);
       const response = await env.ASSETS.fetch(new Request(urlAsset, { method: request.method }));
       return responseWithSecurity(response, url.pathname === '/' || url.pathname === '/index.html');
