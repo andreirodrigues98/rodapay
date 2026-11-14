@@ -1506,7 +1506,9 @@ body:not(.light-mode) .origin-track-fill[style*="E1E5EC"]{opacity:.32!important;
 html body.modal-open{overflow:hidden!important;position:static!important;overscroll-behavior:none!important}
 html body:not(.modal-open){overflow-x:hidden!important;overflow-y:auto!important;position:static!important}
 html #formModal:not(.hidden),html #confirmModal:not(.hidden){overscroll-behavior:contain!important}
-\n\n/* V9.4.2 — iPhone: formulários, modais e indicadores sem cortes. */
+
+
+/* V9.4.2 — iPhone: formulários, modais e indicadores sem cortes. */
 @media (max-width: 699px) {
   /* O cabeçalho não rola com os formulários: evita perder o começo e o fechar. */
   html body #formModal:not(.hidden) {
@@ -1649,8 +1651,97 @@ html #formModal:not(.hidden),html #confirmModal:not(.hidden){overscroll-behavior
     padding-bottom:calc(var(--rp-nav-bottom, 105px) + 96px)!important;
   }
 }
-@media (min-width:400px) and (max-width:699px) {
+
+/* V9.4.3 — Correção efetiva do Safari/iPhone.
+   Controles com menos de 16px ativam o zoom automático ao receber foco.
+   Não desabilitar o zoom manual/acessibilidade pelo viewport. */
+@media screen and (max-width:1023px) {
+  html body :is(input,select,textarea):not([type="radio"]):not([type="checkbox"]):not([type="hidden"]):not([type="file"]),
+  html body [contenteditable="true"] {
+    font-size:16px!important;
+    -webkit-text-size-adjust:100%;
+  }
+  /* Preserva o valor grande da corrida sem disparar zoom no Safari. */
+  html body #formModal .ride-amount-block input:not([type="radio"]) {
+    font-size:clamp(30px,7vw,44px)!important;
+  }
+}
+@media screen and (max-width:699px) {
+  /* Somente o corpo do modal rola; cabeçalho e fechar permanecem visíveis. */
+  html body #formModal .modal-card.large {
+    min-height:0!important;
+    min-width:0!important;
+  }
+  html body #formModal #formModalContent {
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    min-height:0!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  html body #formModal .ride-basic-meta,
   html body #formModal .movement-detail-grid {
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    min-width:0!important;
+    max-width:100%!important;
+    gap:14px!important;
+  }
+  html body #formModal .ride-basic-meta label,
+  html body #formModal .ride-basic-meta input {
+    display:block!important;
+    min-width:0!important;
+    width:100%!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+  html body #formModal .ride-basic-meta input[type="date"],
+  html body #formModal .ride-basic-meta input[type="time"] {
+    font-size:16px!important;
+    line-height:1.35!important;
+    -webkit-appearance:none;
+    appearance:none;
+    padding:12px 14px!important;
+    min-height:54px!important;
+  }
+  html body #formModal .ride-basic-meta input::-webkit-date-and-time-value {
+    min-width:0!important;
+    text-align:left!important;
+  }
+  html body .suggested-categories-bar {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:12px!important;
+    padding:16px!important;
+  }
+  html body .suggested-categories-bar button[data-restore-expense-categories] {
+    width:100%!important;
+    min-width:0!important;
+    min-height:48px!important;
+    justify-content:center!important;
+  }
+  /* Indicador compacto: não fica sobre a navegação nem toma toda a tela. */
+  html body .driving-floating-status:not(.hidden) {
+    left:auto!important;
+    right:calc(12px + env(safe-area-inset-right,0px))!important;
+    transform:none!important;
+    width:min(196px,calc(100vw - 24px))!important;
+    min-width:0!important;
+    min-height:50px!important;
+    max-height:56px!important;
+    bottom:calc(var(--rp-nav-bottom,105px) + 12px)!important;
+    border-radius:14px!important;
+    padding:8px 11px!important;
+    gap:8px!important;
+  }
+  html body .driving-floating-status .driving-live-copy {
+    overflow:hidden!important;
+    min-width:0!important;
+  }
+  html body .driving-floating-status .driving-live-copy strong {
+    font-size:10px!important;
+    line-height:1.2!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
   }
 }

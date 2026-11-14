@@ -22,3 +22,28 @@ test('botão restaurar e cronômetro respeitam largura limitada no mobile', () =
   assert.match(css, /\.suggested-categories-bar button\[data-restore-expense-categories\]\s*\{[\s\S]*?width:100%!important/);
   assert.match(css, /\.driving-floating-status:not\(\.hidden\)\s*\{[\s\S]*?width:min\(226px/);
 });
+
+// Regressão: a correção V9.4.2 chegou ao navegador com "\\n\\n" literal.
+// Nesse caso o @media não era interpretado como regra de layout, apesar dos testes de texto passarem.
+test('CSS mobile tem @media válido sem caracteres de escape literais', () => {
+  assert.doesNotMatch(css, /\\n\\n\/\* V9\.4\.2/);
+  assert.match(css, /\n\/\* V9\.4\.2 — iPhone:/);
+  assert.match(css, /@media \(max-width: 699px\)\s*\{/);
+});
+
+test('campos e seletores têm fonte mínima de 16px no Safari, sem bloquear zoom manual', () => {
+  const latest = css.slice(css.lastIndexOf('/* V9.4.3'));
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(latest, /html body :is\(input,select,textarea\):not\(\[type="radio"\]\)/);
+  assert.match(latest, /font-size:16px!important/);
+  assert.match(latest, /ride-basic-meta\s*,[\s\S]*?movement-detail-grid/);
+  assert.match(html, /premium\.css\?v=9\.4\.3/);
+  assert.doesNotMatch(html, /maximum-scale=1|user-scalable=no/);
+});
+
+test('correção final mantém restaurar, detalhes e jornada compactos no iPhone', () => {
+  const latest = css.slice(css.lastIndexOf('/* V9.4.3'));
+  assert.match(latest, /suggested-categories-bar button\[data-restore-expense-categories\]/);
+  assert.match(latest, /grid-template-columns:minmax\(0,1fr\)!important/);
+  assert.match(latest, /width:min\(196px,calc\(100vw - 24px\)\)!important/);
+});
