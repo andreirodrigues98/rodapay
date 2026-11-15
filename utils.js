@@ -234,25 +234,59 @@ export function safeImageSource(value) {
   return '';
 }
 
-export function imageToBase64(file) {
-  return new Promise((resolve, reject) => {
-    if (!file) return resolve('');
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      return reject(new Error('Selecione uma imagem JPG, PNG ou WebP.'));
-    }
-    if (file.size > 520 * 1024) {
-      return reject(new Error('A imagem deve ter até 520 KB para ser salva.'));
-    }
+// Anexos continuam no documento da despesa (compatibilidade com registros existentes).
+// Fotos do iPhone são reduzidas localmente para respeitar o limite de 1 MiB do Firestore.
+export async function imageToBase64(file) {
+  if (!file) return '';
+  const accepted = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+  if (!accepted.includes(file.type.toLowerCase())) {
+    throw new Error('Selecione uma foto JPG, PNG, WebP ou HEIC.');
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    throw new Error('A foto deve ter até 20 MB antes da otimização.');
+  }
+  const read = () => new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result || '');
-      if (!safeImageSource(result)) reject(new Error('Não foi possível validar a imagem.'));
-      else resolve(result);
-    };
-    reader.onerror = () => reject(new Error('Falha ao ler a imagem.'));
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Não foi possível ler a imagem.'));
     reader.readAsDataURL(file);
   });
+  // Preservar imagens pequenas, sem perda desnecessária de qualidade.
+  if (file.size <= 350 * 1024 && ['image/jpeg','image/png','image/webp'].includes(file.type.toLowerCase())) {
+    const original = await read();
+    if (safeImageSource(original)) return original;
+  }
+  const url = URL.createObjectURL(file);
+  let photo;
+  try {
+    photo = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Esta foto não pôde ser aberta. Tente JPG ou PNG.'));
+      image.src = url;
+    });
+  } finally { URL.revokeObjectURL(url); }
+  const maxEdge = Math.max(photo.naturalWidth, photo.naturalHeight);
+  if (!maxEdge) throw new Error('Imagem inválida.');
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Não foi possível otimizar a foto neste navegador.');
+  let scale = Math.min(1, 1600 / maxEdge);
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    canvas.width = Math.max(1, Math.round(photo.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(photo.naturalHeight * scale));
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(photo, 0, 0, canvas.width, canvas.height);
+    for (const quality of [0.82, 0.70, 0.56]) {
+      const result = canvas.toDataURL('image/jpeg', quality);
+      if (result.length <= 500000 && safeImageSource(result)) return result;
+    }
+    scale *= 0.75;
+  }
+  throw new Error('Não foi possível reduzir esta foto. Escolha outra imagem.');
 }
-export function icon(name,cls=''){ const p={folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',car:'<path d="M7 17h10"/><path d="M5 17H3v-4l2-1 2-5h10l2 5 2 1v4h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',plus:'<path d="M12 5v14M5 12h14"/>',edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',trash:'<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/>',grid:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',swap:'<path d="M7 7h13l-3-3"/><path d="M17 17H4l3 3"/><path d="M20 7l-3 3"/><path d="M4 17l3-3"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a7 7 0 0 0-1.7-1L14.5 3h-5l-.3 3.1a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 3.1h5l.3-3.1a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5c.1-.3.1-.6.1-1Z"/>',chevron:'<path d="m9 6 6 6-6 6"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',tag:'<path d="M20 10 14 4H5v9l6 6 9-9Z"/>',user:'<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/>',card:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',moon:'<path d="M21 12.8A8 8 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z"/>',file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',filter:'<path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/>',back:'<path d="m14 6-6 6 6 6"/><path d="M8 12h10"/>'}; return `<svg class="svg-icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p[name]||''}</svg>`; }
+
+export function icon(name,cls=''){ const p={folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',car:'<path d="M7 17h10"/><path d="M5 17H3v-4l2-1 2-5h10l2 5 2 1v4h-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',plus:'<path d="M12 5v14M5 12h14"/>',edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',trash:'<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/>',grid:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',swap:'<path d="M7 7h13l-3-3"/><path d="M17 17H4l3 3"/><path d="M20 7l-3 3"/><path d="M4 17l3-3"/>',settings:'<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a7 7 0 0 0-1.7-1L14.5 3h-5l-.3 3.1a7 7 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 3.1h5l.3-3.1a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5c.1-.3.1-.6.1-1Z"/>',chevron:'<path d="m9 6 6 6-6 6"/>',logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',tag:'<path d="M20 10 14 4H5v9l6 6 9-9Z"/>',user:'<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/>',card:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/>',moon:'<path d="M21 12.8A8 8 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z"/>',file:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',camera:'<path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3.3"/>',calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',filter:'<path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/>',back:'<path d="m14 6-6 6 6 6"/><path d="M8 12h10"/>'}; return `<svg class="svg-icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p[name]||''}</svg>`; }
 export function renderEmpty(text){ return `<div class="empty-state">${icon('folder')}<p>${text}</p></div>`; }
 window.RodaPayUtils={state,showToast};

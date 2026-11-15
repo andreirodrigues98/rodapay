@@ -6,6 +6,16 @@ import { renderSettings, openSettingsPanel } from './settings.js';
 import { avatarMarkup } from './profile.js';
 import { initDriving, refreshDrivingDisplay, openManualHoursForm, renderDrivingScreen } from './driving.js';
 
+function syncActiveNavigation(viewId) {
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(button => {
+    const active = button.dataset.view === viewId ||
+      (viewId === 'drivingView' && button.hasAttribute('data-open-driving'));
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+}
+
 function applyTheme() {
   const lightMode = state.settings.themePreference === 'light';
   document.body.classList.toggle('light-mode', lightMode);
@@ -32,6 +42,7 @@ export function renderAll() {
   renderAvatar();
   document.querySelectorAll('.screen').forEach(screen =>
     screen.classList.toggle('active-screen', screen.id === state.currentView));
+  syncActiveNavigation(state.currentView);
   document.querySelectorAll('.period-tab').forEach(b => b.classList.toggle('active', b.dataset.period === state.period));
 
   const dashboardOk = safeRenderStep('dashboard', () => renderDashboard());
@@ -147,7 +158,7 @@ function showView(viewId) {
   if (!target?.classList.contains('screen')) return;
   state.currentView = viewId;
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active-screen', s.id === viewId));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === viewId));
+  syncActiveNavigation(viewId);
   // On mobile the former section can be much taller; returning to top prevents
   // landing in an empty part of the viewport when switching sections.
   window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
@@ -203,7 +214,7 @@ function setDashboardPeriod(period) {
   if (!period || !['daily','weekly','monthly','yearly'].includes(period)) return;
   state.currentView = 'dashboardView';
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active-screen', s.id === 'dashboardView'));
-  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === 'dashboardView'));
+  syncActiveNavigation('dashboardView');
   state.period = period;
   localStorage.setItem('rodapay.period', state.period);
   renderAll();
@@ -281,7 +292,7 @@ function initEvents() {
   document.querySelectorAll('[data-open-driving]').forEach(btn=>btn.addEventListener('click',()=>showView('drivingView')));
   floatingAdd?.addEventListener('click', () => openTransactionForm(state.transactionTab));
   floatingDrive?.addEventListener('click', () => showView('drivingView'));
-  document.querySelectorAll('[data-open-driving]').forEach(el=>el.addEventListener('click',()=>showView('drivingView')));
+
   document.querySelectorAll('[data-close-form]').forEach(b => b.addEventListener('click', () => closeModal(formModal)));
   document.querySelectorAll('[data-close-confirm]').forEach(b => b.addEventListener('click', () => closeModal(confirmModal)));
   document.querySelectorAll('[data-back-dashboard]').forEach(b => b.addEventListener('click', () => showView('dashboardView')));

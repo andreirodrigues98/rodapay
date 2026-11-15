@@ -263,14 +263,55 @@ export function openTransactionForm(type = state.transactionTab, item = null) {
   });
   refreshHoursNotice();
 
-  const file = content.querySelector('[name="receiptFile"]');
-  file?.addEventListener('change', async e => {
-    try {
-      const base64 = await imageToBase64(e.target.files[0]);
-      content.querySelector('[name="receiptBase64"]').value = base64;
-      const preview = content.querySelector('.image-preview');
-      if (preview) preview.innerHTML = base64 ? `<img src="${base64}" alt="Prévia da nota fiscal">` : `${icon('file')} <span>Toque para selecionar a imagem da nota</span>`;
-    } catch (error) { e.target.value = ''; showToast(error.message); }
+  const receiptPreview = content.querySelector('.receipt-upload .image-preview');
+  const receiptStatus = content.querySelector('[data-receipt-status]');
+  const receiptName = content.querySelector('[data-receipt-name]');
+  const receiptRemove = content.querySelector('[data-remove-receipt]');
+  const receiptValue = content.querySelector('[name="receiptBase64"]');
+  const receiptSubmit = content.querySelector('button[type="submit"]');
+  const refreshReceipt = (source, filename = '') => {
+    const safe = safeImageSource(source);
+    receiptPreview?.replaceChildren();
+    if (receiptPreview) {
+      if (safe) {
+        const image = document.createElement('img');
+        image.src = safe;
+        image.alt = 'Prévia do comprovante';
+        image.loading = 'lazy';
+        receiptPreview.append(image);
+      } else {
+        const empty = document.createElement('span');
+        empty.textContent = 'Nenhum comprovante selecionado';
+        receiptPreview.append(empty);
+      }
+    }
+    if (receiptName) receiptName.textContent = filename || (safe ? 'Comprovante anexado' : '');
+    if (receiptStatus) receiptStatus.textContent = safe ? 'Pronto para salvar com esta despesa' : 'Imagem opcional';
+    receiptRemove?.classList.toggle('hidden', !safe);
+  };
+  content.querySelectorAll('[name="receiptFile"], [name="receiptCamera"]').forEach(input => {
+    input.addEventListener('change', async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      if (receiptStatus) receiptStatus.textContent = 'Preparando sua imagem...';
+      if (receiptSubmit) receiptSubmit.disabled = true;
+      try {
+        const base64 = await imageToBase64(file);
+        if (receiptValue) receiptValue.value = base64;
+        refreshReceipt(base64, file.name || 'Foto selecionada');
+      } catch (error) {
+        if (receiptStatus) receiptStatus.textContent = error.message || 'Não foi possível carregar a imagem.';
+        showToast(error.message || 'Não foi possível carregar a imagem.');
+      } finally {
+        input.value = '';
+        if (receiptSubmit) receiptSubmit.disabled = false;
+      }
+    });
+  });
+  receiptRemove?.addEventListener('click', () => {
+    if (receiptValue) receiptValue.value = '';
+    content.querySelectorAll('[name="receiptFile"], [name="receiptCamera"]').forEach(input => { input.value = ''; });
+    refreshReceipt('');
   });
 
   content.querySelector('[data-open-date-picker]')?.addEventListener('click', () => {
@@ -415,10 +456,19 @@ function expenseForm(item) {
         <details class="form-optional"><summary><span class="summary-label">Mais detalhes</span><span>Opcional</span></summary><div class="form-optional-body"><label>Detalhe<input name="detail" value="${escapeHtml(item?.detail || '')}" placeholder="Ex.: Bairro Saúde"></label>
         <label>Manutenção item<input name="maintenanceItem" value="${escapeHtml(item?.maintenanceItem || '')}" placeholder="Opcional"></label>
         </div></details><label>Forma de pagamento<select name="paymentMethod">${state.paymentMethods.map(p => `<option ${item?.paymentMethod === p.name ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}</select></label>
-        <div class="receipt-upload"><label class="receipt-custom-label" for="receiptFile">${icon('file')} <span><strong>Nota fiscal</strong><small>Adicionar foto ou comprovante (opcional)</small></span></label>
-        <input id="receiptFile" name="receiptFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" class="file-visually-hidden">
-        <input type="hidden" name="receiptBase64" value="${escapeHtml(safeImageSource(item?.receipt))}">
-        <div class="image-preview">${safeImageSource(item?.receipt) ? `<img src="${escapeHtml(safeImageSource(item.receipt))}" alt="Comprovante anexado">` : '<span>Sem comprovante anexado</span>'}</div></div>
+        <section class="receipt-upload" aria-label="Comprovante da despesa">
+          <div class="receipt-heading"><span class="receipt-heading-icon">${icon('file')}</span><div><strong>Nota fiscal ou comprovante</strong><small>Adicione uma foto da galeria ou tire uma agora. Opcional.</small></div></div>
+          <div class="receipt-actions">
+            <label class="receipt-pick" for="receiptFile">${icon('file')} <span>Anexar foto</span></label>
+            <label class="receipt-pick receipt-pick-camera" for="receiptCamera">${icon('camera')} <span>Tirar foto</span></label>
+          </div>
+          <input id="receiptFile" name="receiptFile" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" class="file-visually-hidden">
+          <input id="receiptCamera" name="receiptCamera" type="file" accept="image/*" capture="environment" class="file-visually-hidden">
+          <input type="hidden" name="receiptBase64" value="${escapeHtml(safeImageSource(item?.receipt))}">
+          <div class="image-preview">${safeImageSource(item?.receipt) ? `<img src="${escapeHtml(safeImageSource(item.receipt))}" alt="Comprovante anexado">` : '<span>Nenhum comprovante selecionado</span>'}</div>
+          <div class="receipt-footer"><span class="receipt-details"><strong data-receipt-name>${safeImageSource(item?.receipt) ? 'Comprovante anexado' : ''}</strong><small data-receipt-status>${safeImageSource(item?.receipt) ? 'Pronto para salvar com esta despesa' : 'Imagem opcional'}</small></span><button type="button" class="receipt-remove ${safeImageSource(item?.receipt) ? '' : 'hidden'}" data-remove-receipt>Remover</button></div>
+          <p class="receipt-file-note">JPG, PNG ou foto do iPhone. Imagens grandes são reduzidas antes de salvar.</p>
+        </section>
         <button class="btn primary" type="submit">Salvar</button>
       </form>
     </div>

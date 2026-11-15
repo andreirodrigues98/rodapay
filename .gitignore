@@ -33,5 +33,5 @@ firebase-export-*/
 .dev.vars.*
 *.local
 
-
+# Regras aplicadas no Firebase; manter cópia local, não versionar
 firestore.rules

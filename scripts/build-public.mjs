@@ -6,7 +6,7 @@ const out = join(root, 'dist-public');
 const files = [
   'index.html','app.js','auth.js','dashboard.js','data.js','driving.js',
   'firebase.js','goals.js','manifest.json','premium.css','profile.js',
-  'settings.js','style.css','transactions.js','utils.js',
+  'settings.js','style.css','refinements.css','transactions.js','utils.js',
   'legal.js','legal-policy.mjs','legal-style.css','termos.html','privacidade.html'
 ];
 await rm(out, { recursive: true, force: true });
