@@ -61,7 +61,10 @@ test('token de outro Firebase falha mesmo com UID de administrador', async () =>
 });
 test('assinatura falsificada não passa a verificação', async () => {
   globalThis.fetch=fakeFetch;
-  const token=jwt(adminId).replace(/.$/, 'x');
+  // Alterar um byte efetivo da assinatura, não o último caractere Base64URL:
+  // os bits de padding podem produzir o mesmo JWT após decodificação.
+  const [header,payload,signature] = jwt(adminId).split('.');
+  const token = `${header}.${payload}.${signature[0] === 'A' ? 'B' : 'A'}${signature.slice(1)}`;
   const res = await worker.fetch(req('/api/session',{token}),env);
   assert.equal(res.status,401);
 });

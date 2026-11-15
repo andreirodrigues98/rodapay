@@ -224,3 +224,13 @@ O teste de regras cria e remove dois usuários **fictícios** e documentos **fic
 **Publicação:** `npm run build:public` reconstrói `dist-public/` com esta versão. Publique somente o conteúdo gerado, nunca o ZIP completo (que contém `admin/`, `firestore.rules` e ferramentas privadas). Nenhuma regra ou documento de produção foi alterado pelo desenvolvimento desta V9.2. Antes de vender: audite as regras e dependências, teste autenticação, alterações e exclusões com emuladores e Safari/Chrome físicos, e valide a compatibilidade dos dados existentes.
 
 **Contas criadas pelo Admin VORA:** recebem `seededDefaults: false`. No primeiro acesso autenticado, o RodaPay preenche as origens, formas de pagamento e categorias sugeridas que faltarem e marca `seededDefaults: true` somente após concluir. Contas antigas sem essa marcação não são reconfiguradas automaticamente. Isso evita reintroduzir categorias que o usuário já excluiu por escolha própria.
+
+
+## Sessão do motorista — V9.4.5
+
+- O Firebase mantém o login entre visitas no mesmo navegador/dispositivo.
+- O RodaPay registra **somente a data/hora da última utilização por UID** no armazenamento local. Ao reabrir ou voltar ao aplicativo após **7 dias inteiros sem uso**, encerra a sessão e pede e-mail e senha novamente. Um novo acesso reinicia a contagem.
+- Para usuários já conectados antes desta atualização, a contagem começa na primeira abertura com a V9.4.5.
+- Se o motorista **mudar a própria senha** em Ajustes, o app encerra a sessão imediatamente. Alterações de senha feitas em outro dispositivo invalidam tokens de atualização do Firebase e são verificadas ao reabrir, voltar ao primeiro plano ou periodicamente (cerca de 5 minutos), quando houver internet.
+- Não armazenamos senhas nem tokens de autenticação manualmente. O controle de 7 dias é por navegador; a segurança real das contas depende do Firebase Authentication e das regras publicadas do Firestore.
+- O intervalo de datas de Movimentações usa texto abreviado `DD/MM/AAAA` com um `input type=date` real invisível e acessível para abrir o calendário nativo do iPhone. Em telas estreitas os campos ficam empilhados.

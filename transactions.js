@@ -20,11 +20,30 @@ function filteredHistory(type) {
     return true;
   }).sort((a,b) => String(b.date || '').localeCompare(String(a.date || '')) || String(b.rideTime || b.createdAt?.seconds || '').localeCompare(String(a.rideTime || a.createdAt?.seconds || '')));
 }
+// O texto do date nativo iOS pode ser maior do que a largura da tela.
+// Exibimos DD/MM/AAAA numa camada visual e mantemos o input date REAL,
+// sobreposto e tocável: o calendário continua sendo o seletor do iPhone.
+function compactHistoryDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? `${value.slice(8,10)}/${value.slice(5,7)}/${value.slice(0,4)}`
+    : 'Selecionar data';
+}
+function historyDateControl(kind, label, value) {
+  const dateId = `history-${kind}-date`;
+  const ariaLabel = kind === 'start' ? 'Data inicial' : kind === 'end' ? 'Data final' : 'Dia';
+  return `<label class="history-date-control" for="${dateId}"><span>${label}</span>
+    <span class="history-date-input">
+      <span class="history-date-value" aria-hidden="true">${compactHistoryDate(value)}</span>
+      <svg class="history-date-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>
+      <input id="${dateId}" type="date" data-history-date="${kind}" value="${value}" aria-label="${ariaLabel}">
+    </span>
+  </label>`;
+}
 function historyFilterControl() {
-  if (historyView.period === 'day') return `<label class="history-date-control">Dia<input type="date" data-history-date="day" value="${historyView.day}"></label>`;
+  if (historyView.period === 'day') return historyDateControl('day', 'Dia', historyView.day);
   if (historyView.period === 'month') return `<label class="history-date-control">Mês<input type="month" data-history-date="month" value="${historyView.month}"></label>`;
   if (historyView.period === 'year') return `<label class="history-date-control">Ano<input type="number" inputmode="numeric" min="2000" max="2100" data-history-date="year" value="${historyView.year}"></label>`;
-  if (historyView.period === 'range') return `<div class="history-custom-range"><label class="history-date-control">De<input type="date" data-history-date="start" value="${historyView.start}"></label><label class="history-date-control">Até<input type="date" data-history-date="end" value="${historyView.end}"></label></div>`;
+  if (historyView.period === 'range') return `<div class="history-custom-range">${historyDateControl('start','De',historyView.start)}${historyDateControl('end','Até',historyView.end)}</div>`;
   return '';
 }
 function sourceLogo(item) {

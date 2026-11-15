@@ -1,4 +1,4 @@
-/* RodaPay 9.4.4 — acabamento mobile.
+/* RodaPay 9.4.5 — acabamento mobile.
    Este arquivo é carregado DEPOIS de premium.css, evitando disputar com blocos
    antigos espalhados entre as folhas e assegurando a chegada da correção. */
 
@@ -241,4 +241,87 @@ html body .bottom-nav .nav-item:not(.nav-primary-action) {transition:background-
 @media (max-width:359px) {
   html body #formModal .receipt-actions {grid-template-columns:minmax(0,1fr)!important;}
   html body .bottom-nav .nav-item > span:last-child {font-size:10px!important;}
+}
+
+/* V9.4.5: no iPhone as datas nativas aparecem com nomes longos e invadem
+   a largura do cartão. O calendário segue nativo e acessível, mas seu texto
+   é substituído por DD/MM/AAAA, sem zoom ou overflow horizontal. */
+html body .history-panel .history-custom-range,
+html body .history-panel .history-date-control,
+html body .history-panel .history-date-input {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+}
+html body .history-panel .history-date-input {
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:0 16px!important;
+  min-height:56px!important;
+  background:var(--field)!important;
+  color:var(--text)!important;
+  border:1px solid var(--border)!important;
+  border-radius:14px!important;
+  overflow:hidden!important;
+  isolation:isolate;
+}
+html body .history-panel .history-date-input:focus-within {
+  outline:2px solid var(--primary)!important;
+  outline-offset:2px!important;
+}
+html body .history-panel .history-date-input .history-date-value {
+  display:block!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+  font-size:16px!important;
+  line-height:1.3!important;
+  font-weight:650!important;
+  pointer-events:none;
+}
+html body .history-panel .history-date-input .history-date-icon {
+  display:block!important;
+  flex:0 0 20px!important;
+  color:var(--primary)!important;
+  pointer-events:none;
+}
+html body .history-panel .history-date-input input[type=date] {
+  position:absolute!important;
+  display:block!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  max-width:100%!important;
+  padding:0!important;
+  margin:0!important;
+  opacity:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  cursor:pointer!important;
+  z-index:1!important;
+  -webkit-appearance:none;
+  appearance:none;
+}
+@media (max-width:767px) {
+  html body .history-panel .history-custom-range {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:14px!important;
+    padding:0!important;
+    overflow:visible!important;
+  }
+  html body .history-panel .history-date-control {
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:8px!important;
+  }
 }

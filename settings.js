@@ -1009,7 +1009,7 @@ document.addEventListener('submit', async event => {
     try {
       await changePassword(current, next);
       form.reset();
-      showToast('Senha atualizada com sucesso.');
+      showToast('Senha atualizada. Entre novamente com a nova senha.');
     } catch (error) { showToast(error.message || 'Não foi possível alterar a senha.'); }
     finally { button.disabled = false; }
     return;
