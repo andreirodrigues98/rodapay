@@ -10,7 +10,7 @@ const utils = read('utils.js');
 
 test('a última folha de estilos é publicada com versão nova e contém o gradiente enviado', () => {
   assert.match(html, /premium\.css\?v=9\.4\.3/);
-  assert.match(html, /refinements\.css\?v=9\.4\.5/);
+  assert.match(html, /refinements\.css\?v=9\.4\.6/);
   assert.ok(existsSync(new URL('../img/rodapay-gradient.webp', import.meta.url)));
   assert.match(css, /url\("img\/rodapay-gradient\.webp"\)/);
   assert.ok(existsSync(new URL('../dist-public/refinements.css', import.meta.url)));

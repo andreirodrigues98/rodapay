@@ -1,3 +1,10 @@
+## V9.4.6 — calendário, cores e avisos (15/11/2026)
+
+- Campos nativos de data, mês e hora apresentam valores curtos e se adaptam aos iPhones, sem substituir o seletor nativo do aparelho.
+- Os filtros Semana/Ano e seletores de período usam a paleta laranja, preto e branco do RodaPay.
+- Os avisos temporários (toast) ficam acima da navegação inferior e da jornada ativa.
+- A regra de 7 dias da V9.4.5, o Firebase e a estrutura do Admin são preservados.
+
 # RodaPay V9.4 — código completo + Admin online (preparado, ainda não publicado)
 
 **Novidade:** foi adicionada uma versão independente do painel administrativo em `admin/online/`. O acesso online usa **seu e-mail e senha já existentes no Firebase**; o acesso às operações é liberado **somente ao UID do proprietário** configurado como secret na Cloudflare. O painel local anterior continua como contingência. O aplicativo dos motoristas e o banco de dados **não foram modificados nesta entrega**.

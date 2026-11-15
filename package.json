@@ -7,7 +7,7 @@
   "scripts": {
     "emulators": "firebase emulators:start --only auth,firestore --project demo-rodapay",
     "test": "npm run build:public && node --test tests/*.mjs",
-    "check": "node --check app.js && node --check auth.js && node --check data.js && node --check driving.js && node --check dashboard.js && node --check transactions.js && node --check settings.js && node --check profile.js && node --check utils.js && node --check firebase.js && node --check goals.js",
+    "check": "node --check app.js && node --check picker-ui.js && node --check auth.js && node --check data.js && node --check driving.js && node --check dashboard.js && node --check transactions.js && node --check settings.js && node --check profile.js && node --check utils.js && node --check firebase.js && node --check goals.js",
     "admin": "node admin/server.mjs",
     "build:public": "node scripts/build-public.mjs",
     "backup:production": "node admin/backup.mjs create",

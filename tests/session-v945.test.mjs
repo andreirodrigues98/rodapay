@@ -63,15 +63,15 @@ test('datas do intervalo exibem DD/MM/AAAA sem perder input date real do iPhone'
   assert.match(css, /position:absolute!important/);
   assert.match(css, /\.history-date-value/);
   assert.match(css, /overflow:hidden!important/);
-  assert.match(load('index.html'), /refinements\.css\?v=9\.4\.5/);
+  assert.match(load('index.html'), /refinements\.css\?v=9\.4\.6/);
 });
 
 test('distribuição da Cloudflare inclui política de sessão e não inclui ferramentas privadas', () => {
   assert.ok(existsSync(new URL('../dist-public/session-policy.js', import.meta.url)));
   const publishedApp = load('dist-public/app.js');
   const publishedAuth = load('dist-public/auth.js');
-  assert.match(publishedApp, /from '\.\/auth\.js\?v=9\.4\.5'/);
-  assert.match(publishedAuth, /from '\.\/app\.js\?v=9\.4\.5'/);
+  assert.match(publishedApp, /from '\.\/auth\.js\?v=9\.4\.6'/);
+  assert.match(publishedAuth, /from '\.\/app\.js\?v=9\.4\.6'/);
   assert.ok(!existsSync(new URL('../dist-public/admin/online/worker.mjs', import.meta.url)));
   assert.ok(!existsSync(new URL('../dist-public/firestore.rules', import.meta.url)));
 });
